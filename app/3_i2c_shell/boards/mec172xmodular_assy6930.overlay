@@ -1,0 +1,58 @@
+/*
+ * Copyright (c) 2020 Intel Corporation
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+
+/ {
+	chosen {
+		zephyr,shell-uart = &uart1;
+	};
+
+	aliases {
+        tgt-i2c = &i2c_smb_1;
+        master-i2c = &i2c_smb_2;
+    };
+
+	leds {
+		led3: led_1 {
+			status = "okay";
+		};
+		led2: led_2 {
+			status = "okay";
+		};
+	};
+
+	/delete-node/ flash@c0000;
+	/delete-node/ memory@118000;
+	flash0: flash@b0000 {
+		reg = <0x000b0000 0x68000>;
+	};
+
+	sram0: memory@118000 {
+		compatible = "mmio-sram";
+		reg = <0x00118000 0xf800>;
+	};
+};
+
+// Target
+&i2c_smb_1 {
+    status = "okay";
+    port_sel = <7>;
+    pinctrl-0 = < &i2c07_sda_gpio012 &i2c07_scl_gpio013 >;  // TP257
+	pinctrl-names = "default";
+
+    label = "target";
+};
+
+// Master
+&i2c_smb_2 {
+    status = "okay";
+    port_sel = <6>;
+    pinctrl-0 = < &i2c06_sda_gpio132 &i2c06_scl_gpio140 >; // TP252
+
+    label = "master";
+
+	pinctrl-names = "default";
+};

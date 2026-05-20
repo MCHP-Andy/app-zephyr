@@ -1,0 +1,36 @@
+/*
+ * Copyright (c) 2020 Intel Corporation
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+
+/ {
+	chosen {
+		zephyr,shell-uart = &uart1;
+	};
+
+	aliases {
+		led0 = &led2;
+	};
+
+	leds {
+		led3: led_1 {
+			status = "okay";
+		};
+		led2: led_2 {
+			status = "okay";
+		};
+	};
+
+	/delete-node/ flash@c0000;
+	/delete-node/ memory@118000;
+	flash0: flash@b0000 {
+		reg = <0x000b0000 0x68000>;
+	};
+
+	sram0: memory@118000 {
+		compatible = "mmio-sram";
+		reg = <0x00118000 0xf800>;
+	};
+};
