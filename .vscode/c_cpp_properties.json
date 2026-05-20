@@ -1,0 +1,9 @@
+{
+    "configurations": [
+        {
+            "name": "Win32",
+            "forcedInclude": ["${workspaceFolder}/build/zephyr/include/generated/zephyr/autoconf.h"],
+        }
+    ],
+    "version": 4
+}

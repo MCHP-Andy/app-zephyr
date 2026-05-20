@@ -1,0 +1,26 @@
+manifest:
+  version: "0.12"
+
+  defaults:
+    remote: zephyrproject-rtos
+
+  remotes:
+    - name: zephyrproject-rtos
+      url-base: https://github.com/zephyrproject-rtos
+    - name: MicrochipTech
+      url-base: https://github.com/MicrochipTech
+
+  projects:
+    - name: zephyr-rtos
+      repo-path: zephyr.git
+      path: zephyr-rtos
+      remote: zephyrproject-rtos
+      revision: v3.7.1
+      clone-depth: 1
+      import:
+        name-allowlist:
+          - cmsis
+          - hal_microchip
+
+  self:
+    path: tool
