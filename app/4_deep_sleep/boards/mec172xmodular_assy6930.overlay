@@ -1,0 +1,67 @@
+/*
+ * Copyright (c) 2020 Intel Corporation
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+
+/ {
+	chosen {
+		zephyr,shell-uart = &uart1;
+	};
+
+	aliases {
+		led0 = &led2;
+	};
+
+	leds {
+		led3: led_1 {
+			status = "okay";
+		};
+		led2: led_2 {
+			status = "okay";
+		};
+	};
+
+	tst_clk_out: tst_clk_out {
+        compatible = "vnd,pinctrl-device";
+        pinctrl-0 = <&tst_clk_out_gpio060>;
+        pinctrl-names = "default";
+        status = "okay";
+    };
+
+	/delete-node/ flash@c0000;
+	/delete-node/ memory@118000;
+	flash0: flash@b0000 {
+		reg = <0x000b0000 0x68000>;
+	};
+
+	sram0: memory@118000 {
+		compatible = "mmio-sram";
+		reg = <0x00118000 0xf800>;
+	};
+};
+
+&idle {
+	min-residency-us = <100000>;
+};
+
+&suspend_to_ram {
+	min-residency-us = <200000>;
+};
+
+&tach0 {
+	status = "disabled";
+};
+
+&i2c_smb_0 {
+	status = "disabled";
+};
+
+&i2c_smb_1 {
+	status = "disabled";
+};
+
+&i2c_smb_2 {
+	status = "disabled";
+};
