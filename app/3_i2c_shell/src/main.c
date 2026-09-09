@@ -6,9 +6,13 @@
 
 #include <stdio.h>
 
+#include <zephyr/logging/log.h>
+
+LOG_MODULE_REGISTER(main, LOG_LEVEL_INF);
+
 int main(void)
 {
-	printf("Hello World! %s\n", CONFIG_BOARD_TARGET);
+	LOG_INF("Hello World! %s", CONFIG_BOARD_TARGET);
 
 	return 0;
 }

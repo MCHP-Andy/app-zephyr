@@ -15,7 +15,7 @@ manifest:
       repo-path: zephyr.git
       path: zephyr-rtos
       remote: zephyrproject-rtos
-      revision: v3.7.1
+      revision: v3.7.2
       clone-depth: 1
       import:
         name-allowlist:

@@ -10,7 +10,7 @@
 #include <zephyr/sys/printk.h>
 #include <zephyr/logging/log.h>
 
-LOG_MODULE_REGISTER(i2c_tgt, LOG_LEVEL_INF);
+LOG_MODULE_REGISTER(i2c_tgt, LOG_LEVEL_DBG);
 
 static const struct device *bus = DEVICE_DT_GET(DT_ALIAS(tgt_i2c));
 
@@ -55,22 +55,23 @@ static int acpi_target_write_received_cb(struct i2c_target_config *config,
     return 0;
 }
 
+static int acpi_target_read_processed_cb(struct i2c_target_config *config, uint8_t *val);
+
+static int acpi_target_read_requested_cb(struct i2c_target_config *config, uint8_t *val) {
+    i2c_state = I2C_STATE_READ;
+    idx = 0;
+
+    return acpi_target_read_processed_cb(config, val);
+}
+
 /*
  * @brief Callback which is called when a read request is received from the
  * master.
  * @param config Pointer to the target configuration.
  * @param val Pointer to the byte to be sent to the master.
  */
-static int acpi_target_read_cb(struct i2c_target_config *config, uint8_t *val) {
+static int acpi_target_read_processed_cb(struct i2c_target_config *config, uint8_t *val) {
     switch (i2c_state) {
-    case I2C_STATE_WRITE:
-    case I2C_STATE_IDLE:
-        idx = 0;
-        *val = resp_buf[idx++];
-        LOG_DBG("acpi target read request: 0x%02x", *val);
-
-        i2c_state = I2C_STATE_READ;
-        break;
     case I2C_STATE_READ:
         *val = resp_buf[idx++];
         LOG_DBG("acpi target read processed: 0x%02x", *val);
@@ -108,8 +109,8 @@ static int acpi_target_stop_cb(struct i2c_target_config *config) {
 static struct i2c_target_callbacks acpi_target_callbacks = {
     .write_requested = acpi_target_write_requested_cb,
     .write_received = acpi_target_write_received_cb,
-    .read_requested = acpi_target_read_cb,
-    .read_processed = acpi_target_read_cb,
+    .read_requested = acpi_target_read_requested_cb,
+    .read_processed = acpi_target_read_processed_cb,
     .stop = acpi_target_stop_cb,
 };
 
@@ -128,13 +129,15 @@ static int init_config(void) {
     ret = i2c_target_register(bus, &target_cfg);
 
     if (ret < 0) {
-        LOG_DBG("Failed to register target: %d\n", ret);
+        LOG_ERR("Failed to register target: %d", ret);
         return -1;
     }
 
     for (uint8_t i = 0; i < sizeof(resp_buf); i++) {
         resp_buf[i] = i;
     }
+
+    LOG_INF("Target registered successfully: %d", ret);
 
     return 0;
 }

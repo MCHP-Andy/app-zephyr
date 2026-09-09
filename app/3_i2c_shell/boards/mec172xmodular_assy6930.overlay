@@ -43,6 +43,10 @@
     pinctrl-0 = < &i2c07_sda_gpio012 &i2c07_scl_gpio013 >;  // TP257
 	pinctrl-names = "default";
 
+	// port_sel = <1>;
+    // pinctrl-0 = < &i2c01_sda_gpio130 &i2c01_scl_gpio131 >;  // TP253
+	// pinctrl-names = "default";
+
     label = "target";
 };
 
@@ -51,8 +55,37 @@
     status = "okay";
     port_sel = <6>;
     pinctrl-0 = < &i2c06_sda_gpio132 &i2c06_scl_gpio140 >; // TP252
+	pinctrl-names = "default";
 
     label = "master";
+};
 
-	pinctrl-names = "default";
+// &i2c01_sda_gpio130{
+// 	drive-open-drain;
+// 	bias-pull-up;
+// };
+
+// &i2c01_scl_gpio131{
+// 	drive-open-drain;
+// 	bias-pull-up;
+// };
+
+&i2c07_sda_gpio012{
+	drive-open-drain;
+	bias-pull-up;
+};
+
+&i2c07_scl_gpio013{
+	drive-open-drain;
+	bias-pull-up;
+};
+
+&i2c06_sda_gpio132{
+	drive-open-drain;
+	bias-pull-up;
+};
+
+&i2c06_scl_gpio140{
+	drive-open-drain;
+	bias-pull-up;
 };
