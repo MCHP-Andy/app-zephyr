@@ -8,6 +8,7 @@
 / {
 	chosen {
 		zephyr,shell-uart = &uart1;
+        zephyr,flash-controller = &int_flash;
 	};
 
 	aliases {
@@ -55,12 +56,41 @@
 			};
 		};
 	};
+
+    soc {
+        /delete-node/ spi@40070000;
+        spi0: spi@40070000 {
+            compatible = "microchip,xec-qmspi-pio";
+            reg = <0x40070000 0x400>;
+            interrupts = <91 2>;
+            clock-frequency = <12000000>;
+            input-clock-frequency = <96000000>;
+            pcr-sleep-reg = <0x40080140>;
+            pcr-sleep-bit = <8>;
+            mode3-signaling = <3>;
+            lines = <1>;
+            chip_select = <0>;
+            dcsckon = <6>;
+            dckcsoff = <4>;
+            dldh = <6>;
+            dcsda = <6>;
+            mode_alt1 = <0>;
+            taps = <0>;
+            taps_adj = <0>;
+            taps_ctrl = <0>;
+            #address-cells = <1>;
+            #size-cells = <0>;
+            status = "disabled";
+        };
+    };
+};
+
+&dmac {
+    status = "okay";
 };
 
 &spi0 {
-    compatible = "microchip,xec-qmspi-ldma";
     status = "okay";
-    // port-sel = <1>;
     clock-frequency = <DT_FREQ_M(8)>;
 
     // // For external flash
@@ -79,21 +109,20 @@
 	// };
 
     // For internal flash
+    // port_sel = <1>;
+    chip_select = <1>;
+    lines = <1>;
     pinctrl-0 = < &int_spi_io0_gpio251 
                   &int_spi_io1_gpio252
                   &int_spi_clk_gpio257
                   &int_spi_cs_n_gpio256
                   &int_spi_wp_gpio260 >;
     int_flash: sst25pf040@0 {
-        compatible ="jedec,spi-nor";
-        size = <DT_SIZE_M(4)>; // 4M bits
-        label = "SST25PF040";
+        compatible = "microchip,xec-spi-nor-reset";
         reg = <0>;
+        size = <DT_SIZE_M(4)>;
         spi-max-frequency = <DT_FREQ_M(8)>; // DT_FREQ_M(40)
         status = "okay";
-        jedec-id = [62 06 13];
-
-        // wp-gpios = <MCHP_GPIO_DECODE_260 GPIO_ACTIVE_LOW>;
     };
 
     pinctrl-names = "default";

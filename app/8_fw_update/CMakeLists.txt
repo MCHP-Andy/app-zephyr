@@ -7,3 +7,5 @@ project(ram_retention)
 
 target_sources(app PRIVATE src/main.c)
 target_sources(app PRIVATE src/fw_upgrade.c)
+target_sources(app PRIVATE src/spi_xec.c)
+target_sources(app PRIVATE src/spi_nor_reset.c)

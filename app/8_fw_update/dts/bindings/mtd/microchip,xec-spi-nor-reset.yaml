@@ -1,0 +1,17 @@
+description: SPI NOR flash with standard read, page program, sector erase, and reset operations; no JEDEC ID probing
+
+compatible: "microchip,xec-spi-nor-reset"
+
+include: spi-device.yaml
+
+properties:
+  reg:
+    required: true
+
+  spi-max-frequency:
+    required: true
+
+  size:
+    type: int
+    required: true
+    description: Flash capacity in bits

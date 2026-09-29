@@ -1,0 +1,88 @@
+description: Microchip XEC QMSPI controller using programmed I/O FIFO transfers
+
+compatible: "microchip,xec-qmspi-pio"
+
+include: [spi-controller.yaml, pinctrl-device.yaml]
+
+properties:
+  reg:
+    required: true
+
+  pinctrl-0:
+    required: true
+
+  pinctrl-names:
+    required: true
+
+  input-clock-frequency:
+    type: int
+    required: true
+    description: QMSPI input clock frequency in Hz
+
+  pcr-sleep-reg:
+    type: int
+    required: true
+    description: Address of the PCR sleep-enable register controlling QMSPI
+
+  pcr-sleep-bit:
+    type: int
+    required: true
+    description: Bit position in pcr-sleep-reg that disables QMSPI sleep
+
+  mode3-signaling:
+    type: int
+    default: 7
+    enum: [3, 7]
+    description: QMSPI mode-register signaling value for SPI mode 3
+
+  lines:
+    type: int
+    const: 1
+    required: true
+    description: Number of QMSPI data lines; this PIO driver supports single-line mode
+
+  chip_select:
+    type: int
+    default: 0
+    enum: [0, 1]
+    description: Hardware QMSPI chip-select index, 0 or 1
+
+  dcsckon:
+    type: int
+    default: 6
+    description: Delay from chip-select assertion to the first clock edge
+
+  dckcsoff:
+    type: int
+    default: 4
+    description: Delay from the last clock edge to chip-select deassertion
+
+  dldh:
+    type: int
+    default: 6
+    description: Delay from chip-select deassertion to HOLD and WP drive
+
+  dcsda:
+    type: int
+    default: 6
+    description: Delay from chip-select deassertion to the next assertion
+
+  mode_alt1:
+    type: int
+    default: 0
+    description: Initial MODE_ALT1 register value restored after controller reset
+
+  taps:
+    type: int
+    default: 0
+    description: Initial TAPS register value restored after controller reset
+
+  taps_adj:
+    type: int
+    default: 0
+    description: Initial TAPS_ADJ register value restored after controller reset
+
+  taps_ctrl:
+    type: int
+    default: 0
+    description: Initial TAPS_CTRL register value restored after controller reset
