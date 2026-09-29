@@ -1,0 +1,123 @@
+/*
+ * Copyright (c) 2020 Intel Corporation
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+
+/ {
+	chosen {
+		zephyr,shell-uart = &uart1;
+	};
+
+	aliases {
+        tgt-i2c = &i2c_smb_1;
+        master-i2c = &i2c_smb_2;
+    };
+
+	leds {
+		led3: led_1 {
+			status = "okay";
+		};
+		led2: led_2 {
+			status = "okay";
+		};
+	};
+
+	/delete-node/ flash@c0000;
+	/delete-node/ memory@118000;
+	flash0: flash@c8000 {
+		reg = <0x000C8000 0x50000>;
+	};
+
+	sram0: memory@118000 {
+		compatible = "mmio-sram";
+		// reg = <0x00118000 0xf800>;
+        reg = <0x00118000 0xe800>;
+	};
+
+    retained_mem: memory@127000 {
+		compatible = "zephyr,memory-region", "mmio-sram";
+		reg = <0x00126800 0x1000>;
+		zephyr,memory-region = "SWAP_RAM";
+		status = "okay";
+
+		retainedmem {
+			compatible = "zephyr,retained-ram";
+			status = "okay";
+			#address-cells = <1>;
+			#size-cells = <1>;
+
+			swap_data0: swap_data@0 {
+				compatible = "zephyr,retention";
+				status = "okay";
+				reg = <0x0 0x1000>;
+			};
+		};
+	};
+};
+
+&spi0 {
+    compatible = "microchip,xec-qmspi-ldma";
+    status = "okay";
+    // port-sel = <1>;
+    clock-frequency = <DT_FREQ_M(8)>;
+
+    // // For external flash
+    // chip-select = < 0x0 >;
+    // pinctrl-0 = < &shd_io0_gpio223 
+    //               &shd_io1_gpio224
+    //               &shd_clk_gpio056
+    //               &shd_cs0_n_gpio055 >;
+    // gd25lb256: gd25lb256@0 {
+	// 	compatible = "jedec,spi-nor";
+	// 	size = <DT_SIZE_M(32)>;
+	// 	reg = <0>;
+	// 	spi-max-frequency = <DT_FREQ_M(8)>;
+	// 	jedec-id = [c8 67 19];
+	// 	status = "okay";
+	// };
+
+    // For internal flash
+    pinctrl-0 = < &int_spi_io0_gpio251 
+                  &int_spi_io1_gpio252
+                  &int_spi_clk_gpio257
+                  &int_spi_cs_n_gpio256
+                  &int_spi_wp_gpio260 >;
+    int_flash: sst25pf040@0 {
+        compatible ="jedec,spi-nor";
+        size = <DT_SIZE_M(4)>; // 4M bits
+        label = "SST25PF040";
+        reg = <0>;
+        spi-max-frequency = <DT_FREQ_M(8)>; // DT_FREQ_M(40)
+        status = "okay";
+        jedec-id = [62 06 13];
+
+        // wp-gpios = <MCHP_GPIO_DECODE_260 GPIO_ACTIVE_LOW>;
+    };
+
+    pinctrl-names = "default";
+};
+
+&pinctrl{
+    /* Internal flash */
+    /omit-if-no-ref/ int_spi_cs_n_gpio256: int_spi_cs_n_gpio256 {
+        pinmux = < MCHP_XEC_PINMUX(0256, MCHP_AF1) >;
+    };
+
+    /omit-if-no-ref/ int_spi_clk_gpio257: int_spi_clk_gpio257 {
+        pinmux = < MCHP_XEC_PINMUX(0257, MCHP_AF1) >;
+    };
+
+    /omit-if-no-ref/ int_spi_io0_gpio251: int_spi_io0_gpio251 {
+        pinmux = < MCHP_XEC_PINMUX(0251, MCHP_AF1) >;
+    };
+
+    /omit-if-no-ref/ int_spi_io1_gpio252: int_spi_io1_gpio252 {
+        pinmux = < MCHP_XEC_PINMUX(0252, MCHP_AF1) >;
+    };
+
+    /omit-if-no-ref/ int_spi_wp_gpio260: int_spi_wp_gpio260 {
+        pinmux = < MCHP_XEC_PINMUX(0260, MCHP_AF0) >;
+    };
+};

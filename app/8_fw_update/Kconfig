@@ -1,0 +1,11 @@
+mainmenu "MCHP firmware update"
+
+source "Kconfig.zephyr"
+
+config APP_SPI_NOR_RESET
+	bool
+	default y if DT_HAS_MICROCHIP_XEC_SPI_NOR_RESET_ENABLED
+	select FLASH_HAS_DRIVER_ENABLED
+	select FLASH_HAS_EX_OP
+	select FLASH_HAS_PAGE_LAYOUT
+	select FLASH_HAS_EXPLICIT_ERASE
