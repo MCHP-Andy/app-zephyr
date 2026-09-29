@@ -1,0 +1,58 @@
+/*
+ * Copyright (c) 2020 Intel Corporation
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+
+/ {
+	chosen {
+		zephyr,shell-uart = &uart1;
+	};
+
+	aliases {
+        tgt-i2c = &i2c_smb_1;
+        master-i2c = &i2c_smb_2;
+    };
+
+	leds {
+		led3: led_1 {
+			status = "okay";
+		};
+		led2: led_2 {
+			status = "okay";
+		};
+	};
+
+	// /delete-node/ flash@c0000;
+	/delete-node/ memory@118000;
+	// flash0: flash@b0000 {
+	// 	reg = <0x000b0000 0x68000>;
+	// };
+
+	sram0: memory@118000 {
+		compatible = "mmio-sram";
+		// reg = <0x00118000 0xf800>;
+		reg = <0x00118000 0xe000>;
+	};
+
+	retained_mem: memory@126000 {
+		compatible = "zephyr,memory-region", "mmio-sram";
+		reg = <0x00126000 0x1800>;
+		zephyr,memory-region = "retained_mem";
+		status = "okay";
+
+		retainedmem {
+			compatible = "zephyr,retained-ram";
+			status = "okay";
+			#address-cells = <1>;
+			#size-cells = <1>;
+
+			otp_info0: otp_info@0 {
+				compatible = "zephyr,retention";
+				status = "okay";
+				reg = <0x0 0x1000>;
+			};
+		};
+	};
+};
