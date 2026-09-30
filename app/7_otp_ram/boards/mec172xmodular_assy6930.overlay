@@ -7,6 +7,7 @@
 
 / {
 	chosen {
+		zephyr,console = &uart1;
 		zephyr,shell-uart = &uart1;
 	};
 
@@ -24,21 +25,21 @@
 		};
 	};
 
-	// /delete-node/ flash@c0000;
+	/delete-node/ flash@c0000;
 	/delete-node/ memory@118000;
-	// flash0: flash@b0000 {
-	// 	reg = <0x000b0000 0x68000>;
-	// };
+	flash0: flash@b0000 {
+		reg = <0x000b0000 0x68000>;
+	};
 
 	sram0: memory@118000 {
 		compatible = "mmio-sram";
 		// reg = <0x00118000 0xf800>;
-		reg = <0x00118000 0xe000>;
+		reg = <0x00118000 0xb800>;
 	};
 
-	retained_mem: memory@126000 {
+	retained_mem: memory@123800 {
 		compatible = "zephyr,memory-region", "mmio-sram";
-		reg = <0x00126000 0x1800>;
+		reg = <0x00123800 0x4000>;
 		zephyr,memory-region = "retained_mem";
 		status = "okay";
 
@@ -48,11 +49,56 @@
 			#address-cells = <1>;
 			#size-cells = <1>;
 
-			otp_info0: otp_info@0 {
+			otp_ver0: otp_ver@0 {
 				compatible = "zephyr,retention";
 				status = "okay";
-				reg = <0x0 0x1000>;
+				reg = < 0x0 0x800 >;
+			};
+
+			otp_info0: otp_info@800 {
+				compatible = "zephyr,retention";
+				status = "okay";
+				reg = < 0x800 0x800 >;
+			};
+
+			eeprom_info0: eeprom_info@1800 {
+				compatible = "zephyr,retention";
+				status = "okay";
+				reg = < 0x1800 0x2000 >;
 			};
 		};
 	};
 };
+
+&eeprom {
+	size = < 0x2000 >;
+	pinctrl-0 = <&pspi_cs_n_gpio256
+		     &pspi_clk_gpio257
+		     &pspi_sdi_gpio252
+		     &pspi_sdo_gpio251>;
+	pinctrl-names = "default";
+	status = "okay";
+};
+
+&pinctrl {
+	/omit-if-no-ref/ pspi_sdo_gpio251: pspi_sdo_gpio251 {
+		pinmux = <MCHP_XEC_PINMUX(0251, MCHP_AF2)>;
+	};
+	/omit-if-no-ref/ pspi_sdi_gpio252: pspi_sdi_gpio252 {
+		pinmux = <MCHP_XEC_PINMUX(0252, MCHP_AF2)>;
+	};
+	/omit-if-no-ref/ pspi_cs_n_gpio256: pspi_cs_n_gpio256 {
+		pinmux = <MCHP_XEC_PINMUX(0256, MCHP_AF2)>;
+	};
+	/omit-if-no-ref/ pspi_clk_gpio257: pspi_clk_gpio257 {
+		pinmux = <MCHP_XEC_PINMUX(0257, MCHP_AF2)>;
+	};
+};
+
+
+// &uart0 {
+// 	status = "okay";
+// 	current-speed = < 0x1c200 >;
+// 	pinctrl-0 = < &uart0_tx_gpio104 &uart0_rx_gpio105 >;
+// 	pinctrl-names = "default";
+// };

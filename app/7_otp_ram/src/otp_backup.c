@@ -1,5 +1,6 @@
 #include <zephyr/device.h>
 #include <zephyr/devicetree.h>
+#include <zephyr/drivers/eeprom.h>
 #include <zephyr/drivers/retained_mem.h>
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
@@ -21,9 +22,13 @@ typedef uint8_t (*api_efuse_byte_read_td)(uint16_t byte_idx, uint8_t *out_data);
 typedef uint32_t (*api_rom_ver_td)(void);
 
 /* 1. 從 Devicetree 取得我們定義的 boot_info0 裝置實例 */
-static const struct device *retain_dev = DEVICE_DT_GET(DT_NODELABEL(otp_info0));
+static const struct device *otp_ver = DEVICE_DT_GET(DT_NODELABEL(otp_ver0));
+static const struct device *otp_data = DEVICE_DT_GET(DT_NODELABEL(otp_info0));
+static const struct device *eeprom_data = DEVICE_DT_GET(DT_NODELABEL(eeprom_info0));
 
-static uint8_t otp_data[2048];
+static const struct device *eeprom = DEVICE_DT_GET(DT_NODELABEL(eeprom));
+
+static uint8_t buf[DT_REG_SIZE(DT_NODELABEL(eeprom_info0))] = {0};
 static uint32_t rom_ver = 0;
 
 #include <zephyr/init.h>
@@ -33,27 +38,57 @@ static int init_config(void) {
 
     LOG_INF("--- Zephyr Retention system test ---");
 
-    /* 檢查裝置是否已經就緒 */
-    if (!device_is_ready(retain_dev)) {
-        LOG_ERR("Retention device is not ready!");
+    // Check if the retention memory devices are ready
+    if (!device_is_ready(otp_ver)) {
+        LOG_ERR("OTP version device is not ready!");
         return -1;
     }
 
-    for (int i = 0; i < sizeof(otp_data); i++) {
-        api_efuse_byte_read(i, &otp_data[i]);
-    }
-
+    // Read the boot rom version from the ROM API and store it in retention memory
     rom_ver = api_rom_ver();
     LOG_INF("ROM Version: 0x%08X", rom_ver);
-
-    ret = retention_write(retain_dev, 0, otp_data, sizeof(otp_data));
+    ret = retention_write(otp_ver, 0, (uint8_t *)&rom_ver, sizeof(rom_ver));
     if (ret < 0) {
         LOG_ERR("Failed to write Retention: %d", ret);
         return ret;
     }
 
-    ret = retention_write(retain_dev, sizeof(otp_data), &rom_ver,
-                          sizeof(rom_ver));
+    // Check if the retention memory devices are ready
+    if (!device_is_ready(otp_data)) {
+        LOG_ERR("OTP buffer device is not ready!");
+        return -1;
+    }
+
+    // Read the OTP data from efuse and store it in retention memory
+    for (int i = 0; i < DT_REG_SIZE(DT_NODELABEL(otp_info0)); i++) {
+        api_efuse_byte_read(i, &buf[i]);
+    }
+    ret =
+        retention_write(otp_data, 0, buf, DT_REG_SIZE(DT_NODELABEL(otp_info0)));
+    if (ret < 0) {
+        LOG_ERR("Failed to write Retention: %d", ret);
+        return ret;
+    }
+
+    memset(buf, 0xAA, sizeof(buf));
+
+    // Check if the retention memory devices are ready
+    if (!device_is_ready(eeprom_data)) {
+        LOG_ERR("EEPROM buffer device is not ready!");
+        return -1;
+    }
+    if (!device_is_ready(eeprom)) {
+        LOG_ERR("EEPROM buffer device is not ready!");
+        return -1;
+    }
+
+    // Read the EEPROM data and store it in retention memory
+    ret = eeprom_read(eeprom, 0, buf, DT_REG_SIZE(DT_NODELABEL(eeprom_info0)));
+    if (ret < 0) {
+        LOG_ERR("Failed to read EEPROM: %d", ret);
+    }
+    ret = retention_write(eeprom_data, 0, buf,
+                          DT_REG_SIZE(DT_NODELABEL(eeprom_info0)));
     if (ret < 0) {
         LOG_ERR("Failed to write Retention: %d", ret);
         return ret;
