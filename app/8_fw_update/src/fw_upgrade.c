@@ -91,3 +91,24 @@ static void service(void)
 
 K_THREAD_DEFINE(fw_upgrade_id, 4096, service, NULL, NULL, NULL, 10,
                 0, 0);
+
+
+#include <zephyr/init.h>
+#include <zephyr/drivers/pinctrl.h>
+
+static int gpio_init(void) {
+
+    PINCTRL_DT_DEFINE(DT_NODELABEL(spi_gpio_init));
+    const struct pinctrl_dev_config *spi_gpio_init_pcfg =
+        PINCTRL_DT_DEV_CONFIG_GET(DT_NODELABEL(spi_gpio_init));
+    int ret = pinctrl_apply_state(spi_gpio_init_pcfg, PINCTRL_STATE_DEFAULT);
+    if (ret < 0) {
+        LOG_ERR("Failed to apply pinctrl state: %d", ret);
+        return ret;
+    }
+	LOG_INF("SPI GPIO initialized successfully");
+
+    return 0;
+}
+
+SYS_INIT(gpio_init, POST_KERNEL, 0);

@@ -55,6 +55,24 @@
 			};
 		};
 	};
+
+    spi_gpio_init: spi_gpio_init {
+        compatible = "vnd,pinctrl-device";
+        pinctrl-0 = < &init_pri_spi_gpio121
+                      &init_pri_spi_gpio122
+                      &init_pri_spi_gpio123
+                      &init_pri_spi_gpio124
+                      &init_pri_spi_gpio125
+                      &init_pri_spi_gpio126
+                      &init_sha_spi_gpio055
+                      &init_sha_spi_gpio056
+                      &init_sha_spi_gpio223
+                      &init_sha_spi_gpio224
+                      &init_sha_spi_gpio227
+                      &init_sha_spi_gpio016 >;
+        pinctrl-names = "default";
+        status = "okay";
+    };
 };
 
 &spi0 {
@@ -119,5 +137,47 @@
 
     /omit-if-no-ref/ int_spi_wp_gpio260: int_spi_wp_gpio260 {
         pinmux = < MCHP_XEC_PINMUX(0260, MCHP_AF0) >;
+    };
+
+
+    // Init Private SPI
+    /omit-if-no-ref/ init_pri_spi_gpio121: init_pri_spi_gpio121 {
+        pinmux = < MCHP_XEC_PINMUX(0121, MCHP_AF0) >;
+    };
+    /omit-if-no-ref/ init_pri_spi_gpio122: init_pri_spi_gpio122 {
+        pinmux = < MCHP_XEC_PINMUX(0122, MCHP_AF0) >;
+    };
+    /omit-if-no-ref/ init_pri_spi_gpio123: init_pri_spi_gpio123 {
+        pinmux = < MCHP_XEC_PINMUX(0123, MCHP_AF0) >;
+    };
+    /omit-if-no-ref/ init_pri_spi_gpio124: init_pri_spi_gpio124 {
+        pinmux = < MCHP_XEC_PINMUX(0124, MCHP_AF0) >;
+    };
+    /omit-if-no-ref/ init_pri_spi_gpio125: init_pri_spi_gpio125 {
+        pinmux = < MCHP_XEC_PINMUX(0125, MCHP_AF0) >;
+    };
+    /omit-if-no-ref/ init_pri_spi_gpio126: init_pri_spi_gpio126 {
+        pinmux = < MCHP_XEC_PINMUX(0126, MCHP_AF0) >;
+    };
+
+
+    // Init Shared SPI
+    /omit-if-no-ref/ init_sha_spi_gpio055: init_sha_spi_gpio055 {
+        pinmux = < MCHP_XEC_PINMUX(0055, MCHP_AF0) >;
+    };
+    /omit-if-no-ref/ init_sha_spi_gpio056: init_sha_spi_gpio056 {
+        pinmux = < MCHP_XEC_PINMUX(0056, MCHP_AF0) >;
+    };
+    /omit-if-no-ref/ init_sha_spi_gpio223: init_sha_spi_gpio223 {
+        pinmux = < MCHP_XEC_PINMUX(0223, MCHP_AF0) >;
+    };
+    /omit-if-no-ref/ init_sha_spi_gpio224: init_sha_spi_gpio224 {
+        pinmux = < MCHP_XEC_PINMUX(0224, MCHP_AF0) >;
+    };
+    /omit-if-no-ref/ init_sha_spi_gpio227: init_sha_spi_gpio227 {
+        pinmux = < MCHP_XEC_PINMUX(0227, MCHP_AF0) >;
+    };
+    /omit-if-no-ref/ init_sha_spi_gpio016: init_sha_spi_gpio016 {
+        pinmux = < MCHP_XEC_PINMUX(0016, MCHP_AF0) >;
     };
 };
