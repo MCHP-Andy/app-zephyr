@@ -33,6 +33,18 @@ LOG_MODULE_REGISTER(app_pm, LOG_LEVEL_INF);
 #define CLK_RQST 					0x50
 #define CLK_RQST_LEN				(5)
 
+
+#include <zephyr/drivers/gpio.h>
+
+/* The devicetree node identifier for the "led0" alias. */
+#define LED0_NODE DT_ALIAS(led1)
+
+/*
+ * A build error on this line means your board is unsupported.
+ * See the sample documentation for information on how to fix this.
+ */
+static const struct gpio_dt_spec led = GPIO_DT_SPEC_GET(LED0_NODE, gpios);
+
 static void periph_sleep(void) {
     volatile uint32_t *slp_en = (uint32_t *)(PCR_XEC_REG_BASE + SLP_EN);
 
@@ -212,16 +224,19 @@ static void z_power_soc_deep_sleep(void)
 
 	__disable_irq();
 
-	// soc_deep_sleep_periph_save();
-	// soc_deep_sleep_wake_en();
-	// soc_deep_sleep_non_wake_en();
-
-	periph_sleep();
+	// periph_sleep();
+    volatile uint32_t *slp_en = (uint32_t *)(PCR_XEC_REG_BASE);
+    slp_en[0] |= BIT(3);
+    #define TIMER_BASE (DT_REG_ADDR_BY_IDX(DT_NODELABEL(timer4), 0))
+    #define TIMER_CTRL_OFFSET 0x10
+    volatile uint32_t *timer_ctrl = (uint32_t *)(TIMER_BASE + TIMER_CTRL_OFFSET);
+    timer_ctrl[0] &= ~BIT(5); // Disable timer4
 
     volatile uint32_t *clk_req = (uint32_t *)(PCR_XEC_REG_BASE + CLK_RQST);
     for (int i = 0; i < CLK_RQST_LEN; i++) {
         LOG_DBG("CLK_REQ%d: 0x%08X", i, clk_req[i]);
     }
+    LOG_DBG(" ");
 
 	/*
 	 * Enable deep sleep mode in CM4 and MEC172x.
@@ -258,11 +273,9 @@ static void z_power_soc_deep_sleep(void)
 		}
 	} while (1);
 
-	periph_wake();
-
-	// soc_deep_sleep_non_wake_dis();
-	// soc_deep_sleep_wake_dis();
-	// soc_deep_sleep_periph_restore();
+	// periph_wake();
+    slp_en[0] &= ~BIT(3);
+    timer_ctrl[0] |= BIT(5); // Enable timer4
 }
 
 /*
@@ -292,6 +305,7 @@ static void z_power_soc_sleep(void)
 	sys_write32(0U, PCR_XEC_REG_BASE + SYS_SLP_CTRL);
 }
 
+#if CONFIG_PM
 /*
  * Called from pm_system_suspend(int32_t ticks) in subsys/power.c
  * For deep sleep pm_system_suspend has executed all the driver
@@ -309,7 +323,9 @@ void pm_state_set(enum pm_state state, uint8_t substate_id)
 		break;
 	case PM_STATE_SUSPEND_TO_RAM:
 		LOG_DBG("Suspended to RAM");
+        gpio_pin_set_dt(&led, 0);
 		z_power_soc_deep_sleep();
+        gpio_pin_set_dt(&led, 1);
 		break;
 	default:
 		break;
@@ -327,9 +343,61 @@ void pm_state_set(enum pm_state state, uint8_t substate_id)
 void pm_state_exit_post_ops(enum pm_state state, uint8_t substate_id)
 {
 	__enable_irq();
-	__ISB();
-	irq_unlock(0);
+ 	irq_unlock(0);
 }
+#endif /* CONFIG_PM */
+
+#if CONFIG_PM_POLICY_CUSTOM
+#include <zephyr/pm/policy.h>
+
+static const struct pm_state_info residency_info[] =
+	PM_STATE_INFO_LIST_FROM_DT_CPU(DT_NODELABEL(cpu0));
+
+static volatile bool dp_en = false;
+
+const struct pm_state_info *pm_policy_next_state(uint8_t cpu, int32_t ticks)
+{
+	ARG_UNUSED(cpu);
+
+	if (dp_en) {
+		for (int i = ARRAY_SIZE(residency_info) - 1; i >= 0; i--) {
+			if (pm_policy_state_lock_is_active(
+				    residency_info[i].state,
+				    PM_ALL_SUBSTATES)) {
+				continue;
+			}
+
+			/* Find suitable power state by residency time */
+			if (ticks == K_TICKS_FOREVER ||
+			    ticks >= k_us_to_ticks_ceil32(
+					     residency_info[i]
+						     .min_residency_us)) {
+				return &residency_info[i];
+			}
+		}
+	}
+
+	return NULL;
+}
+
+#if CONFIG_SHELL
+#include <zephyr/shell/shell.h>
+
+static int cmd_pwr_dp(const struct shell *sh, size_t argc, char **argv) {
+    dp_en = (bool)strtoul(argv[1], NULL, 0);
+    shell_info(sh, "Deep sleep enabled: %s", dp_en ? "true" : "false");
+    return 0;
+}
+
+SHELL_STATIC_SUBCMD_SET_CREATE(sub_pwr,
+    SHELL_CMD_ARG(dp, NULL, "Set deep sleep enable <val>", cmd_pwr_dp, 2, 0),
+    SHELL_SUBCMD_SET_END
+);
+
+SHELL_CMD_REGISTER(pwr, &sub_pwr, "Power commands", NULL);
+#endif /* CONFIG_SHELL */
+
+#endif /* CONFIG_PM_POLICY_CUSTOM */
 
 #include <zephyr/init.h>
 #include <zephyr/drivers/pinctrl.h>
@@ -345,6 +413,9 @@ static int pwr_clk_init(void) {
         return ret;
     }
 	LOG_INF("TST_CLK_OUT initialized successfully");
+
+    gpio_pin_configure_dt(&led, GPIO_OUTPUT_ACTIVE);
+    // gpio_pin_set_dt(&led, 0);
 
     return 0;
 }
