@@ -9,6 +9,8 @@ manifest:
       url-base: https://github.com/zephyrproject-rtos
     - name: MicrochipTech
       url-base: https://github.com/MicrochipTech
+    - name: wolfssl
+      url-base: https://github.com/wolfssl
 
   projects:
     - name: zephyr-rtos
@@ -21,6 +23,10 @@ manifest:
         name-allowlist:
           - cmsis
           - hal_microchip
+    - name: wolfssl
+      path: modules/crypto/wolfssl
+      revision: v5.9.4-stable
+      remote: wolfssl
 
   self:
     path: tool
