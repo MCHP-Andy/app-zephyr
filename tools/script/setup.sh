@@ -14,7 +14,7 @@ export ZEPHYR_TOOLCHAIN_VARIANT=zephyr
 
 export WORKSPACE=$(pwd)
 export ZEPHYR_SDK_INSTALL_DIR=/home/andy/Desktop/toolchain/zephyr-sdk-0.16.8
-export MEC172X_SPI_GEN=${WORKSPACE}/tools/kf_spi_gen_revb/Kenai_Fjords_spi_gen.exe
+export MEC172X_SPI_GEN=${WORKSPACE}/tools/kf_spi_gen_revb/mec175x_spi_gen_linux_x86_64
 export MEC172X_SPI_CFG=${WORKSPACE}/tools/kf_spi_gen_revb/spi_cfg.ini
 
 echo ================ Zephyr ENV =======================
